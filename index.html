@@ -183,17 +183,44 @@ async function handleLogin() {
 
 async function checkRole(userId) {
     const { data: profile } = await _supabase.from('profiles').select('role').eq('id', userId).single();
+    
     if (profile && profile.role === 'admin') {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('admin-wrapper').style.display = 'flex';
         initializeAdminData();
     } else {
-        // --- STUDENT VIEW ---
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('student-section').style.display = 'block';
-        loadStudentTests(userId); 
+        // This is a student
+        handleStudentAutoRedirect(userId);
     }
 }
+
+async function handleStudentAutoRedirect(userId) {
+    // 1. Look for the most recent pending test for this student
+    const { data: assignments, error } = await _supabase
+        .from('test_assignments')
+        .select(`
+            id,
+            tests ( file_url )
+        `)
+        .eq('student_id', userId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    if (error || !assignments || assignments.length === 0) {
+        console.log("No pending tests found for redirect.");
+        return;
+    }
+
+    const testUrl = assignments[0].tests.file_url;
+
+    // 2. Immediate Redirect to the Test
+    if (testUrl) {
+        alert("Verification successful! Opening your test now...");
+        window.location.href = testUrl; 
+    }
+}
+
 
 
 // 3. UI NAVIGATION
