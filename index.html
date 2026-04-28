@@ -163,10 +163,57 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 1. AUTO-LOGIN CHECK
 window.onload = async function() {
     const { data: { session } } = await _supabase.auth.getSession();
-    if (session && session.user) {
-        checkRole(session.user.id);
+    const urlParams = new URLSearchParams(window.location.search);
+    const isVerifyMode = urlParams.get('mode') === 'verify';
+
+    if (session) {
+        const userId = session.user.id;
+        
+        // 1. Check Role
+        const { data: profile } = await _supabase.from('profiles').select('role').eq('id', userId).single();
+        
+        if (profile?.role === 'admin' && !isVerifyMode) {
+            // ADMIN PATH: Show Dashboard
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('admin-wrapper').style.display = 'flex';
+            initializeAdminData();
+        } else {
+            // STUDENT PATH: Direct to Test
+            handleStudentFlow(userId);
+        }
     }
 };
+
+async function handleStudentFlow(userId) {
+    // Find their pending test
+    const { data: assignment } = await _supabase
+        .from('test_assignments')
+        .select('*, tests(file_url)')
+        .eq('student_id', userId)
+        .eq('status', 'pending')
+        .limit(1)
+        .single();
+
+    if (assignment) {
+        // Hide everything and only show the OTP Gate
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('admin-wrapper').style.display = 'none'; // Ensure admin UI is hidden
+        document.getElementById('otp-gate').style.display = 'block';
+        
+        // Save the URL to a global variable for the button to use
+        window.targetTestUrl = assignment.tests.file_url;
+    } else {
+        alert("No pending tests found. Please contact Finspire Admin.");
+    }
+}
+
+function verifyAndOpen() {
+    // This is called by the 'VERIFY & START TEST' button
+    if (window.targetTestUrl) {
+        window.location.href = window.targetTestUrl;
+    }
+}
+
 
 // 2. AUTH & ROLE CHECK
 async function handleLogin() {
