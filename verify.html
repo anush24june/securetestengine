@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finspire Exam Verification</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f8f9fa; }
+        .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+        input { font-size: 24px; width: 200px; text-align: center; padding: 10px; margin: 20px 0; border: 2px solid #8C2E81; border-radius: 8px; }
+        button { background: #F19F29; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="color: #8C2E81;">Verify Your Exam</h2>
+        <p>Enter the 6-digit code sent to your email.</p>
+        <input type="text" id="otp-code" placeholder="000000">
+        <br>
+        <button onclick="verifyAndStart()">VERIFY & START EXAM</button>
+    </div>
+
+    <script>
+        const _supabase = supabase.createClient('YOUR_URL', 'YOUR_KEY');
+
+        async function verifyAndStart() {
+            const code = document.getElementById('otp-code').value;
+            // 1. Get the email from the URL (we'll add this to the email link)
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+
+            const { data, error } = await _supabase.auth.verifyOtp({
+                email: email,
+                token: code,
+                type: 'email'
+            });
+
+            if (error) return alert("Invalid Code: " + error.message);
+
+            // 2. Find the test
+            const { data: assign } = await _supabase
+                .from('test_assignments')
+                .select('*, tests(file_url)')
+                .eq('student_id', data.user.id)
+                .eq('status', 'pending')
+                .single();
+
+            if (assign) {
+                window.location.href = assign.tests.file_url;
+            }
+        }
+    </script>
+</body>
+</html>
