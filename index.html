@@ -79,83 +79,98 @@
         </div>
     </div>
 
-    <div id="admin-wrapper">
+<div id="admin-wrapper">
         <div class="sidebar">
             <h2>FINSPIRE ADMIN</h2>
-            <button class="nav-btn active" onclick="switchView('dashboard-view')">Dashboard</button>
-            <button class="nav-btn" onclick="switchView('assign-view')">Assign Test</button>
+            <button class="nav-btn active" onclick="switchView('assign-view')">Assign Test</button>
+            <button class="nav-btn" onclick="switchView('dashboard-view')">Student History</button>
+            <button class="nav-btn" onclick="switchView('analytics-view')">Analytics</button>
             <div style="margin-top: auto;">
-                <button class="nav-btn" onclick="location.reload()" style="width: 100%; opacity: 0.7;">Logout</button>
-            </div>
+				<button class="nav-btn" onclick="handleLogout()" style="width: 100%; opacity: 0.7;">Logout</button>           
+			 </div>
         </div>
 
         <div class="main-content">
-<div id="dashboard-view" class="view active">
-    <h1>Student Analytics</h1>
-    <div class="card">
-        <div class="form-group">
-            <label>Select Student</label>
-            <select id="dashboard-user-select" onchange="loadStudentSummary()">
-                <option value="">-- Select Student --</option>
-            </select>
-        </div>
-
-        <div id="student-summary-area" style="display: none;">
-            <div class="stat-grid">
-                <div class="stat-box"><p>Assigned</p><h3 id="stat-assigned">0</h3></div>
-                <div class="stat-box"><p>Completed</p><h3 id="stat-completed">0</h3></div>
-                <div class="stat-box"><p>Avg Score</p><h3 id="stat-avg">N/A</h3></div>
-            </div>
-
-            <h3 style="margin-top:30px;">Detailed History</h3>
-            <div style="overflow-x:auto;">
-                <table id="history-table" style="width:100%; border-collapse: collapse; margin-top:10px;">
-                    <thead>
-                        <tr style="background:#eee; text-align:left;">
-                            <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Test Name</th>
-                            <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Date Assigned</th>
-                            <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Date Taken</th>
-                            <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Score</th>
-                            <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Documents</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-body">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-            <div id="assign-view" class="view">
+            <div id="assign-view" class="view active">
                 <h1>Assign New Testlet</h1>
                 <div class="card">
                     <div class="form-group">
                         <label>Target Student</label>
-                        <select id="assign-user-select">
+                        <select id="assign-user-select" onchange="refreshTestDropdown()">
                             <option value="">-- Loading --</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Select Testlet</label>
                         <select id="assign-test-select">
-                            <option value="">-- Loading --</option>
+                            <option value="">-- Select Student First --</option>
                         </select>
                     </div>
                     <button class="btn-primary" onclick="assignTest()">ASSIGN TO STUDENT</button>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <div id="otp-gate" style="display:none; margin-top: 20px; border: 2px solid var(--fs-purple); padding: 20px; border-radius: 10px;">
-    <h3>Verification Required</h3>
-    <p>Please enter the 6-digit code sent to your email.</p>
-    <input type="text" id="otp-code" placeholder="123456" style="text-align:center; font-size: 24px; letter-spacing: 5px;">
-    <button class="btn-primary" onclick="verifyAndOpen()">VERIFY & START TEST</button>
-</div>
 
+            <div id="dashboard-view" class="view">
+                <h1>Student History</h1>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Select Student</label>
+                        <select id="dashboard-user-select" onchange="loadStudentSummary()">
+                            <option value="">-- Select Student --</option>
+                        </select>
+                    </div>
+
+                    <div id="student-summary-area" style="display: none;">
+                        <div class="stat-grid">
+                            <div class="stat-box"><p>Assigned</p><h3 id="stat-assigned">0</h3></div>
+                            <div class="stat-box"><p>Completed</p><h3 id="stat-completed">0</h3></div>
+                            <div class="stat-box"><p>Avg Score</p><h3 id="stat-avg">N/A</h3></div>
+                        </div>
+
+                        <h3 style="margin-top:30px;">Detailed History</h3>
+                        <div style="overflow-x:auto;">
+                            <table id="history-table" style="width:100%; border-collapse: collapse; margin-top:10px;">
+                                <thead>
+                                    <tr style="background:#eee; text-align:left;">
+                                        <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Test Name</th>
+                                        <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Date Assigned</th>
+                                        <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Date Taken</th>
+                                        <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Score</th>
+                                        <th style="padding:10px; border-bottom:2px solid var(--fs-purple);">Documents</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="analytics-view" class="view">
+                <h1>Global Performance Analytics</h1>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Pivot View</label>
+                        <select id="pivot-type" onchange="renderGlobalAnalytics()">
+                            <option value="student">Scores by Student</option>
+                            <option value="topic">Scores by Test Topic</option>
+                        </select>
+                    </div>
+                    <table id="analytics-table" style="width:100%; border-collapse: collapse;">
+                        <thead id="analytics-head"></thead>
+                        <tbody id="analytics-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div> </div> <div id="otp-gate" style="display:none; margin-top: 20px; border: 2px solid var(--fs-purple); padding: 20px; border-radius: 10px; text-align:center;">
+        <h3>Verification Required</h3>
+        <p>Please enter the 6-digit code sent to your email.</p>
+        <input type="text" id="otp-code" placeholder="123456" style="text-align:center; font-size: 24px; letter-spacing: 5px; width: 250px;">
+        <br><br>
+        <button class="btn-primary" onclick="verifyAndOpen()">VERIFY & START TEST</button>
+    </div>
     <script>
+		
 const SUPABASE_URL = 'https://ezxcjslmitiscygriusu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_a_Y75-A7fE3hoCe8Td_lvw_Gja4rJdY';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -277,14 +292,22 @@ function switchView(viewId) {
     document.getElementById(viewId).classList.add('active');
     if (window.event && window.event.currentTarget) {
         window.event.currentTarget.classList.add('active');
+        if (viewId === 'analytics-view') renderGlobalAnalytics();
+
     }
 }
 
 // 4. ADMIN DATA LOADING
+let allAssignments = [];
+let allTests = [];
+
 async function initializeAdminData() {
     const { data: users } = await _supabase.from('profiles').select('id, email, role');
     const { data: tests } = await _supabase.from('tests').select('id, test_name');
-
+    const { data: assignments } = await _supabase.from('test_assignments').select('*, tests(test_name)');
+    
+    allAssignments = assignments || [];
+    allTests = tests || [];
     const selects = [document.getElementById('dashboard-user-select'), document.getElementById('assign-user-select')];
     selects.forEach(sel => {
         if (!sel) return;
@@ -360,6 +383,56 @@ async function loadStudentTests(userId) {
     } else {
         listDiv.innerHTML = '<p style="text-align:center;">No tests assigned yet.</p>';
     }
+}
+
+async function refreshTestDropdown() {
+    const studentId = document.getElementById('assign-user-select').value;
+    const testSel = document.getElementById('assign-test-select');
+    if (!studentId) return;
+
+    testSel.innerHTML = '<option value="">-- Select Test --</option>';
+    allTests.forEach(t => {
+        const history = allAssignments.filter(a => a.student_id === studentId && a.test_id === t.id);
+        let label = t.test_name;
+        if (history.length > 0) {
+            const lastDate = new Date(Math.max(...history.map(a => new Date(a.created_at))))
+                             .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            label += ` (${history.length}) - ${lastDate}`;
+        }
+        testSel.add(new Option(label, t.id));
+    });
+}
+
+function renderGlobalAnalytics() {
+    const type = document.getElementById('pivot-type').value;
+    const body = document.getElementById('analytics-body');
+    const head = document.getElementById('analytics-head');
+    const completed = allAssignments.filter(a => a.status === 'completed' && a.score !== null);
+    
+    body.innerHTML = "";
+    let pivot = {};
+
+    completed.forEach(a => {
+        let key = type === 'student' ? a.student_id : (a.tests?.test_name || "Unknown");
+        if (!pivot[key]) pivot[key] = { count: 0, total: 0 };
+        pivot[key].count++;
+        pivot[key].total += a.score;
+    });
+
+    head.innerHTML = `<tr><th>${type === 'student' ? 'Student ID' : 'Topic'}</th><th>Attempts</th><th>Avg Score</th></tr>`;
+    Object.keys(pivot).forEach(key => {
+        const row = body.insertRow();
+        row.innerHTML = `<td>${key}</td><td>${pivot[key].count}</td><td>${Math.round(pivot[key].total/pivot[key].count)}%</td>`;
+    });
+}
+
+async function handleLogout() {
+    const { error } = await _supabase.auth.signOut();
+    if (error) {
+        console.error("Error logging out:", error.message);
+    }
+    // Now that the session is destroyed, reload the page to show the login screen
+    window.location.reload();
 }
 
 
